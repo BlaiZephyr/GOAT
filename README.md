@@ -1,6 +1,5 @@
-# Tauri + SvelteKit + TypeScript
+the Greatest OpenSource API Tester
 
-This template should help get you started developing with Tauri, SvelteKit and TypeScript in Vite.
 
 ## Recommended IDE Setup
 
