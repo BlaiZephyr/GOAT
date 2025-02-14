@@ -1,165 +1,91 @@
 <script lang="ts">
-    import { invoke } from "@tauri-apps/api/core";
+  import { invoke } from '@tauri-apps/api/core';
 
-    let name = $state("");
-    let greetMsg = $state("");
+  let apiUrl = $state('');
+  let message = $state('');
+  let loading = $state(false);
 
-    async function greet(event: Event) {
-        event.preventDefault();
-        // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-        greetMsg = await invoke("greet", { name });
+  $effect(() => {
+    loadCurrentUrl();
+  });
+
+  // Load the current API URL when component mounts
+  async function loadCurrentUrl() {
+    try {
+      apiUrl = await invoke('get_api_url');
+    } catch (error) {
+      message = `Error loading URL: ${error}`;
     }
-    import ApiSetup from "./ApiSetup.svelte";
+  }
+
+  loadCurrentUrl();
+
+  async function saveApiUrl() {
+    loading = true;
+    message = '';
+
+    try {
+      const response: string = await invoke('set_api_url', {
+        url: apiUrl,
+      });
+      message = response;
+    } catch (error) {
+      message = `Error: ${error}`;
+    } finally {
+      loading = false;
+    }
+  }
+
+  async function testApiConnection() {
+    loading = true;
+    message = '';
+
+    try {
+      const response = await invoke('make_api_request');
+      message = `Success! Response: ${response}`;
+    } catch (error) {
+      message = `Error: ${error}`;
+    } finally {
+      loading = false;
+    }
+  }
 </script>
 
-<ApiSetup />
-<main class="container">
-    <h1>Welcome to Tauri + Svelte</h1>
+<div class="p-3">
+  <h2 class="text-xl font-bold">API Configuration</h2>
 
-    <div class="row">
-        <a href="https://vitejs.dev" target="_blank">
-            <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-            <img src="/tauri.svg" class="logo tauri" alt="Tauri Logo" />
-        </a>
-        <a href="https://kit.svelte.dev" target="_blank">
-            <img
-                src="/svelte.svg"
-                class="logo svelte-kit"
-                alt="SvelteKit Logo"
-            />
-        </a>
+  <div class="m-3">
+    <label for="apiUrl">API URL:</label>
+    <input
+      id="apiUrl"
+      class="p-2 border border-grey-400 rounded"
+      type="text"
+      bind:value={apiUrl}
+      placeholder="Enter API URL"
+    />
+  </div>
+
+  <div class="space-x-2">
+    <button
+      class="rounded p-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700"
+      onclick={saveApiUrl}
+      disabled={loading}
+    >
+      {loading ? 'Saving...' : 'Save URL'}
+    </button>
+
+    <button
+      class="rounded p-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700"
+      onclick={testApiConnection}
+      disabled={loading}
+    >
+      {loading ? 'Testing...' : 'Test Connection'}
+    </button>
+  </div>
+
+  {#if message}
+    <div class="p-2 bg-gray-700 rounded mt-4 border border-gray-500">
+      {message}
     </div>
-    <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
-
-    <form class="row" onsubmit={greet}>
-        <input
-            id="greet-input"
-            placeholder="Enter a name..."
-            bind:value={name}
-        />
-        <button type="submit">Greet</button>
-    </form>
-    <p>{greetMsg}</p>
-</main>
-
-<style>
-    .logo.vite:hover {
-        filter: drop-shadow(0 0 2em #747bff);
-    }
-
-    .logo.svelte-kit:hover {
-        filter: drop-shadow(0 0 2em #ff3e00);
-    }
-
-    :root {
-        font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-        font-size: 16px;
-        line-height: 24px;
-        font-weight: 400;
-
-        color: #0f0f0f;
-        background-color: #f6f6f6;
-
-        font-synthesis: none;
-        text-rendering: optimizeLegibility;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        -webkit-text-size-adjust: 100%;
-    }
-
-    .container {
-        margin: 0;
-        padding-top: 10vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        text-align: center;
-    }
-
-    .logo {
-        height: 6em;
-        padding: 1.5em;
-        will-change: filter;
-        transition: 0.75s;
-    }
-
-    .logo.tauri:hover {
-        filter: drop-shadow(0 0 2em #24c8db);
-    }
-
-    .row {
-        display: flex;
-        justify-content: center;
-    }
-
-    a {
-        font-weight: 500;
-        color: #646cff;
-        text-decoration: inherit;
-    }
-
-    a:hover {
-        color: #535bf2;
-    }
-
-    h1 {
-        text-align: center;
-    }
-
-    input,
-    button {
-        border-radius: 8px;
-        border: 1px solid transparent;
-        padding: 0.6em 1.2em;
-        font-size: 1em;
-        font-weight: 500;
-        font-family: inherit;
-        color: #0f0f0f;
-        background-color: #ffffff;
-        transition: border-color 0.25s;
-        box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-    }
-
-    button {
-        cursor: pointer;
-    }
-
-    button:hover {
-        border-color: #396cd8;
-    }
-    button:active {
-        border-color: #396cd8;
-        background-color: #e8e8e8;
-    }
-
-    input,
-    button {
-        outline: none;
-    }
-
-    #greet-input {
-        margin-right: 5px;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        :root {
-            color: #f6f6f6;
-            background-color: #2f2f2f;
-        }
-
-        a:hover {
-            color: #24c8db;
-        }
-
-        input,
-        button {
-            color: #ffffff;
-            background-color: #0f0f0f98;
-        }
-        button:active {
-            background-color: #0f0f0f69;
-        }
-    }
-</style>
+  {/if}
+</div>

@@ -12,10 +12,12 @@ fn greet(name: &str) -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
-        .invoke_handler(tauri::generate_handler![make_api_request])
-        .invoke_handler(tauri::generate_handler![get_api_url])
-        .invoke_handler(tauri::generate_handler![set_api_url])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            make_api_request,
+            get_api_url,
+            set_api_url
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
