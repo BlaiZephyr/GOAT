@@ -21,6 +21,9 @@ coverage
 # OS-specific
 .DS_Store
 
+# svelte-kit output
+.svelte-kit/
+
 tmp
 
 benchmarking/compare/.results
